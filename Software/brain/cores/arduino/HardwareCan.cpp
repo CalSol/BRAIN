@@ -263,9 +263,12 @@ CanMessage CanBufferRead() {
     mcp2515 has a message ready to be read */
 void CanReadHandler() {
   while (1) {
-    if (_can_buffer_size && _can_buffer_start == _can_buffer_end)
-      return;
     int available = Can.available();
+    if (_can_buffer_size && _can_buffer_start == _can_buffer_end) {
+      CanMessage dummy;
+      Can.recv(available, dummy);
+      return;
+    }
     if (!available)
       return;
     Can.recv(available, _can_buffer[_can_buffer_end]);
