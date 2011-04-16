@@ -37,8 +37,8 @@ class HardwareCan
     void reset();
     void config(boolean enable);
     void monitor(boolean silent);
-    int rxError();
-    int txError();
+    unsigned int rxError();
+    unsigned int txError();
   private:
     int _CsPin;
     int _IntPin;

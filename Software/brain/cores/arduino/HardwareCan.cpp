@@ -27,8 +27,6 @@ CanMessage::CanMessage(int _id, const char * _data, char _len) {
 HardwareCan::HardwareCan(int CsPin, int IntPin) {
   _CsPin = CsPin;
   _IntPin = IntPin;
-  // TODO(Ryan): Implement interrupt usage
-  //_IntHandler = 0x00;
   _mcp2515 = Mcp2515(CsPin);
 }
 
@@ -40,9 +38,6 @@ void HardwareCan::begin(int Freq) {
   _mcp2515.write(CANINTE, 0x03);
   // Start listening in normal mode
   monitor(0);
-  // TODO(Ryan): Implement interrupt usage
-  // Attach interrupt to int pin
-  //attachInterrupt(_IntPin, &handleInterrupt, FALLING);
 }
 
 /* Set CAN operating frequency, valid modes are:
@@ -108,7 +103,9 @@ boolean HardwareCan::interrupted() {
 
 /* Sends can message. 0 on success, 1 on error */
 int HardwareCan::send(CanMessage msg) {
+  PCICR &=~ 0x02;  // Disable PC1 Interrupt
   _mcp2515.send(msg.len, msg.id, msg.data);
+  PCICR |= 0x02;   // Re-enable PC1 interrupt
   return 0;
 }
 
@@ -212,15 +209,15 @@ void HardwareCan::monitor(boolean silent) {
 }
 
 /* Returns number of RX errors */
-int HardwareCan::rxError() {
+unsigned int HardwareCan::rxError() {
   // Read Receieve error count register
-  return (int) _mcp2515.read(REC);
+  return (unsigned int) _mcp2515.read(REC);
 }
 
 /* Returns number of TX errors */
-int HardwareCan::txError() {
+unsigned int HardwareCan::txError() {
   // Read Transmit error count register
-  return (int) _mcp2515.read(TEC);
+  return (unsigned int) _mcp2515.read(TEC);
 }
 
 // Init an instance for the CalSol Brain
@@ -242,6 +239,7 @@ ISR(PCINT1_vect) {
 void CanBufferInit() {
   PCMSK1 |= 0x08;  // PC Interrupt #11 (Thats the CAN INT pin) enable
   PCICR |= 0x02; // PC Interrupt 1 enable
+  DDRC |= (1<<5);
   CanReadHandler();
 }
 /* Reads a single CanMessage out of the buffer, returns an invalid CanMessage
@@ -251,31 +249,35 @@ CanMessage CanBufferRead() {
   if (_can_buffer_size) {
     const CanMessage result = _can_buffer[_can_buffer_start];
     // Modulus
-    _can_buffer_start = (_can_buffer_start==CAN_BUFFER_SIZE-1)?0:_can_buffer_start+1;
+    _can_buffer_start = (_can_buffer_start == CAN_BUFFER_SIZE-1) ? 0 : _can_buffer_start+1;
     _can_buffer_size--;
     return result;
-  }
-  else {
+  } else {
     return CanMessage(0);  // Invalid packet
   }
 }
 /* Called by Pin change ISR if CANINT has a falling edge.  That means the
     mcp2515 has a message ready to be read */
 void CanReadHandler() {
+  // While we still have packets
   while (1) {
     int available = Can.available();
+    if (!available)
+      return;
     if (_can_buffer_size && _can_buffer_start == _can_buffer_end) {
       CanMessage dummy;
       Can.recv(available, dummy);
-      return;
+      continue;
     }
-    if (!available)
-      return;
     Can.recv(available, _can_buffer[_can_buffer_end]);
     // Increment
     _can_buffer_end++;
     if (_can_buffer_end == CAN_BUFFER_SIZE) _can_buffer_end = 0;
     _can_buffer_size++;
+    if (PINC & (1<<5))
+      PORTC &=~ (1<<5);
+    else
+      PORTC |= (1<<5);
   }
 }
 int CanBufferSize() {
