@@ -274,10 +274,6 @@ void CanReadHandler() {
     _can_buffer_end++;
     if (_can_buffer_end == CAN_BUFFER_SIZE) _can_buffer_end = 0;
     _can_buffer_size++;
-    if (PINC & (1<<5))
-      PORTC &=~ (1<<5);
-    else
-      PORTC |= (1<<5);
   }
 }
 int CanBufferSize() {
