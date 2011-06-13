@@ -31,8 +31,9 @@ HardwareCan::HardwareCan(int CsPin, int IntPin) {
 }
 
 // Set the MCP2515 to start listening
-void HardwareCan::begin(int Freq) {
-  reset();
+void HardwareCan::begin(int Freq, bool do_reset) {
+  if (do_reset)
+    reset();
   frequency(Freq);
   // Enable interrupt on the int pin when either RX buffer are filled
   _mcp2515.write(CANINTE, 0x03);
