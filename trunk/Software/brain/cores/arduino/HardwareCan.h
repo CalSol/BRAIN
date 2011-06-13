@@ -24,7 +24,7 @@ class HardwareCan
 {
   public:
     HardwareCan(int CsPin, int IntPin);
-    void begin(int hz);
+    void begin(int hz, bool do_reset = true);
     int frequency(int hz);
     int available();
     boolean interrupted();
