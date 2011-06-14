@@ -209,6 +209,16 @@ void HardwareCan::monitor(boolean silent) {
     _mcp2515.write(CANCTRL, 0x00);  // Normal mode
 }
 
+/* Attaches a callback to a packet receive event */
+void HardwareCan::attach(void (*func)(CanMessage &msg)) {
+  _func = func;
+}
+
+/* Detaches the packet receive callback */
+void HardwareCan::detach() {
+  _func = 0;
+}
+
 /* Returns number of RX errors */
 unsigned int HardwareCan::rxError() {
   // Read Receieve error count register
@@ -265,6 +275,12 @@ void CanReadHandler() {
     int available = Can.available();
     if (!available)
       return;
+    if (Can._func) {
+      CanMessage packet;
+      Can.recv(available, packet);
+      Can._func(packet);
+      continue;
+    }
     if (_can_buffer_size && _can_buffer_start == _can_buffer_end) {
       CanMessage dummy;
       Can.recv(available, dummy);
