@@ -37,8 +37,11 @@ class HardwareCan
     void reset();
     void config(boolean enable);
     void monitor(boolean silent);
+    void attach(void (*func)(CanMessage &msg));
+    void detach();
     unsigned int rxError();
     unsigned int txError();
+    void (*_func)(CanMessage &msg);
   private:
     int _CsPin;
     int _IntPin;
