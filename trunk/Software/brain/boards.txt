@@ -1,6 +1,6 @@
 #### CalSol Brain ###
 
-brain.name=CalSol Brain V2.0 (v0024)
+brain.name=CalSol Brain V2.0 (v0025)
 brain.upload.protocol=stk500
 brain.upload.maximum_size=30720
 brain.upload.speed=19200

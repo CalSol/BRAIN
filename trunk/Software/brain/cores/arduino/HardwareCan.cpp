@@ -222,13 +222,19 @@ void HardwareCan::detach() {
 /* Returns number of RX errors */
 unsigned int HardwareCan::rxError() {
   // Read Receieve error count register
-  return (unsigned int) _mcp2515.read(REC);
+  PCICR &=~ 0x02;
+  unsigned int result = 0xFF & _mcp2515.read(REC);
+  PCICR |= 0x02;   // Re-enable PC1 interrupt
+  return result;
 }
 
 /* Returns number of TX errors */
 unsigned int HardwareCan::txError() {
   // Read Transmit error count register
-  return (unsigned int) _mcp2515.read(TEC);
+  PCICR &=~ 0x02;
+  unsigned int result = 0xFF & _mcp2515.read(TEC);
+  PCICR |= 0x02;   // Re-enable PC1 interrupt
+  return result;
 }
 
 // Init an instance for the CalSol Brain
