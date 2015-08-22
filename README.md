@@ -1,6 +1,8 @@
 This repository formerly lived at https://code.google.com/p/calsolbrain/. It was
 moved to github after news of Google Code's closure. The below information was
-last updated ~2012.
+last updated ~2012. There is a newer version of the BRAIN (the v3) in the works,
+which includes usage of the LPC11c14 and the LPC1549. Currently, the production
+quantities have been too low for full verification, but the results are promising.
 
 # Outdated
 
